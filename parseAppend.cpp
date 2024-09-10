@@ -8,7 +8,7 @@ using namespace std;
 
 
 // This struct holds the parsed data
-struct ParsedData {
+typedef struct {
     bool A_flag = false;
     bool L_flag = false;
     int T = -1;
@@ -17,7 +17,7 @@ struct ParsedData {
     const char* G = nullptr;
     int R = -1;
     const char* log = nullptr; 
-};
+}ParsedData;
 
 bool validate_timestamp(const char* ts) {
     for (int i = 0; ts[i] != '\0'; i++) {
@@ -203,3 +203,4 @@ ParsedData parse_input(int argc, char* argv[]) {
 
     return data; 
 }
+
