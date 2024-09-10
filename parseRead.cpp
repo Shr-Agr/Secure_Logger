@@ -7,7 +7,7 @@
 
 using namespace std;
 
-struct ParsedData {
+typedef struct {
     const char* K = nullptr;
     bool S_flag = false;
     bool R_flag = false;
@@ -16,7 +16,7 @@ struct ParsedData {
     vector<const char*> E_names;
     vector<const char*> G_names;
     const char* log = nullptr;
-};
+}ParsedData;
 
 bool validate_token(const char* token) {
     for (int i = 0; token[i] != '\0'; i++) {
