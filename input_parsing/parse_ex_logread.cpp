@@ -1,5 +1,5 @@
 #include <iostream>
-#include "parseRead.cpp" 
+#include "parseRead.h" 
 
 using namespace std;
 
