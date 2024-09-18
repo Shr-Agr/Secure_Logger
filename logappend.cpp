@@ -1,5 +1,5 @@
 #include <iostream>
-#include "parseAppend.cpp" // Include the input parsing module
+#include "parseAppend.h" // Include the input parsing module
 
 using namespace std;
 
