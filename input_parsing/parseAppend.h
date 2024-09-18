@@ -25,4 +25,4 @@ bool validate_log_file(const char* log_path);
 
 void invalid(string s);
 
-ParsedData parse_input(int argc, char* argv[]);
+ParsedData parse_input(int argc, char *argv[]);

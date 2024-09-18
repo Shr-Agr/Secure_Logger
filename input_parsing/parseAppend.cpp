@@ -203,4 +203,3 @@ ParsedData parse_input(int argc, char* argv[]) {
 
     return data; 
 }
-

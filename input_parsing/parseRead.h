@@ -23,4 +23,3 @@ bool validate_log_file(const char* log_path);
 void invalid();
 
 ParsedData parse_input(int argc, char* argv[]);
-
