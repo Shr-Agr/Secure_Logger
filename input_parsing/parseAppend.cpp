@@ -19,6 +19,17 @@ typedef struct {
     const char* log = nullptr; 
 }ParsedData;
 
+void printParsedData(const ParsedData& data) {
+    std::cout << "Parsed Data:" << std::endl;
+    std::cout << "A_flag: " << (data.A_flag ? "true" : "false") << std::endl;
+    std::cout << "L_flag: " << (data.L_flag ? "true" : "false") << std::endl;
+    std::cout << "T: " << data.T << std::endl;
+    std::cout << "K: " << (data.K ? data.K : "nullptr") << std::endl;
+    std::cout << "E: " << (data.E ? data.E : "nullptr") << std::endl;
+    std::cout << "G: " << (data.G ? data.G : "nullptr") << std::endl;
+    std::cout << "R: " << data.R << std::endl;
+    std::cout << "log: " << (data.log ? data.log : "nullptr") << std::endl;
+}
 bool validate_timestamp(const char* ts) {
     for (int i = 0; ts[i] != '\0'; i++) {
         if (!isdigit(ts[i])) {
@@ -142,7 +153,10 @@ void invalid(string s) {
 ParsedData parse_input(int argc, char* argv[]) {
     ParsedData data;
     int option;
-
+    optind = 1;
+    // for (int i = 0; i < argc; i++) {
+    //     cout << "Arg[" << i << "]: " << argv[i] << endl;
+    // }
     // Parsing command-line options
     while ((option = getopt(argc, argv, "T:K:E:G:ALR:")) != -1) {
         switch (option) {
@@ -163,11 +177,11 @@ ParsedData parse_input(int argc, char* argv[]) {
                 data.G = optarg;
                 break;
             case 'A':
-                if (data.L_flag == 1 || data.L_flag) invalid("");
+                if (data.L_flag  || data.A_flag) invalid("");
                 data.A_flag = true;
                 break;
             case 'L':
-                if (data.L_flag == true || data.A_flag) invalid("");
+                if (data.L_flag || data.A_flag) invalid("");
                 data.L_flag = true;
                 break;
             case 'R':
@@ -180,20 +194,23 @@ ParsedData parse_input(int argc, char* argv[]) {
         }
     }
     if (optind < argc) {
-
         // Validate the log file path
         if (!validate_log_file(argv[optind])) {
             invalid("Log file path");
         }
-        if(optind+1 != argc ){
+        
+        // Ensure that the log file is the last argument
+        data.log = argv[optind];  
+        if (optind + 1 < argc) {
             invalid("multiple log files");
         }
-
-        data.log = argv[optind];  
 
     } else {
         invalid("Missing log file");
     }
+    printParsedData(data);
+
+    
 
     // Check if required arguments are present
     if (data.T == -1 || data.K == nullptr || (data.E == nullptr && data.G == nullptr) || (!data.A_flag && !data.L_flag)) {

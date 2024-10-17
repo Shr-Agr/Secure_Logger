@@ -6,6 +6,7 @@
 #include "parseAppend.h"  // Include the input parsing module
 #include<unordered_map>
 #include<map> 
+#include <sys/stat.h>
 #include<vector> 
 using namespace std;
 
@@ -151,13 +152,6 @@ Activity givelastActivity(const string& logFileName, ParsedData data) {
         }
     }
 
-    // cout << "Last Activity Found for " << personName << ":\n";
-    // cout << "Timestamp: " << lastActivity.T << "\n";
-    // cout << "Role/Department: " << lastActivity.E << "\n";
-    // cout << "Activity Flag (A_flag): " << lastActivity.A_flag << "\n";
-    // cout << "Log Flag (L_flag): " << lastActivity.L_flag << "\n";
-    // cout<<"room number"<<endl ; 
-
     return lastActivity;
 }
 
@@ -266,6 +260,153 @@ bool write_to_log(const string& logFileName, const ParsedData& data) {
     return true;
 }
 
+bool fileExist(const char *filename) {
+    struct stat buffer;
+    return (stat(filename, &buffer) == 0);
+}
+int main(int argc, char* argv[]) {
+    // Call the input parsing function (not implemented in this snippet)
+    ParsedData data;
+    bool batchMode = false;  // Flag to check if we're in batch mode
+    string batchFileName;
+
+    // Check if the -B flag is provided
+    for (int i = 1; i < argc; ++i) {
+        if (string(argv[i]) == "-B" && i + 1 < argc) {
+            batchMode = true;
+            batchFileName = argv[++i];
+            break;
+        }
+    }
+
+    if (batchMode) {
+        // Open the batch file
+        //cout<<"yes got it"<<endl ; 
+        ifstream batchFile(batchFileName);
+        if (!batchFile.is_open()) {
+            cerr << "Error: Could not open batch file." << endl;
+            return 1;
+        }
+
+        string line;
+        int lineNumber = 0;
+
+        // Process each line in the batch file
+        while (getline(batchFile, line)) {
+            ++lineNumber;
+            // Parse the line as input
+            char* lineArgs[100];  // Arbitrary large array to hold arguments
+            int argCount = 0;
+
+            // Split the line into arguments (this function needs to be implemented)
+            istringstream iss(line);
+            string token;
+            const char* logFilePath = "random/path/"; 
+            lineArgs[argCount++] = strdup(logFilePath); 
+            while (iss >> token) {
+                lineArgs[argCount++] = strdup(token.c_str());
+            }
+            
+            //cout<<*lineArgs<<endl ; 
+            // cout << "Line " << lineNumber << ": Number of arguments (argc): " << argCount << endl;
+
+            // // Also, print the arguments if needed for further debugging
+            // for (int i = 0; i < argCount; ++i) {
+            //     cout << "Arg[" << i << "]: " << lineArgs[i] << endl;
+            // }
+           
+            //cout<<line<<endl ; 
+            // Call parse_input to get ParsedData for the current line
+            data = parse_input(argCount, lineArgs);
+
+            // Ensure the log file has the ".log" extension
+            string logFileName = ensure_log_extension(data.log);
+
+            // Read the last used timestamp
+            int lastTimestamp = read_last_timestamp(logFileName);
+
+            // Ensure the provided timestamp is greater than the last one
+            if (data.T <= lastTimestamp) {
+                cerr << "Error on line " << lineNumber << ": The provided timestamp T must be greater than the last used timestamp (" << lastTimestamp << ")" << endl;
+                continue;  // Skip to the next line
+            }
+
+            // Process the log and write data if valid
+            
+            if (fileExist(logFileName.c_str())) {
+                if (checks_on_sequence(logFileName, data)) {
+                    if (write_to_log(logFileName, data)) {
+                        cout << "Entry added for line " << lineNumber << endl;
+                    } else {
+                        cerr << "Error on line " << lineNumber << ": Problem with the token" << endl;
+                    }
+                } else {
+                    cerr << "Error on line " << lineNumber << ": Invalid operation, sequence of data is incorrect." << endl;
+                }
+            } else {
+                // Handle initial entry case
+                if (data.A_flag && data.R == -1) {
+                    if (write_to_log(logFileName, data)) {
+                        cout << "Initial entry added for line " << lineNumber << endl;
+                    } else {
+                        cerr << "Error on line " << lineNumber << ": Problem with the token" << endl;
+                    }
+                } else {
+                    cerr << "Error on line " << lineNumber << ": Problem with the sequence of data" << endl;
+                }
+            }
+        }
+
+        batchFile.close();
+    } else {
+        data = parse_input(argc, argv);
+        // Ensure the log file has the ".log" extension
+        string logFileName = ensure_log_extension(data.log);
+        // Read the last used timestamp
+        int lastTimestamp = read_last_timestamp(logFileName);
+        cout<<lastTimestamp<<" this is the timestamp"<<endl ; 
+        // Ensure the provided timestamp is greater than the last one
+        if (data.T <= lastTimestamp) {
+            cerr << "Error: The provided timestamp T must be greater than the last used timestamp (" << lastTimestamp << ")" << endl;
+            return 1;
+        }
+
+        // Process the log and write data if valid
+        ifstream file(logFileName);  // Try to open the file
+        bool fileExist = file.good();       
+        if(!fileExist){
+            if(data.A_flag && data.R == -1){
+                if (write_to_log(logFileName, data)) {
+                    // Successfully wrote to log, update timestamp
+                cout<<"added entry"<<endl ; 
+                } else {
+                    invalid("problem with the token") ; 
+                }
+            }
+            else{
+                invalid("problem with the sequence of data") ; 
+            }
+        }
+        else if ( checks_on_sequence(logFileName, data) ) {
+            if (write_to_log(logFileName, data)) {
+                // Successfully wrote to log, update timestamp
+            cout<<"added entry"<<endl ; 
+            } else {
+                invalid("problem with the token") ; 
+            }
+        } else {
+            invalid("Invalid operation: sequence of data is incorrect.") ;
+        }
+        
+    }
+
+    return 0;
+}
+
+
+/*
+
+
 int main(int argc, char* argv[]) {
     // Call the input parsing function (not implemented in this snippet)
     ParsedData data = parse_input(argc, argv);
@@ -284,7 +425,20 @@ int main(int argc, char* argv[]) {
     // Process the log and write data if valid
     ifstream file(logFileName);  // Try to open the file
     bool fileExist = file.good();       
-    if (!fileExist || checks_on_sequence(logFileName, data) ) {
+    if(!fileExist){
+        if(data.A_flag && data.R == -1){
+            if (write_to_log(logFileName, data)) {
+                // Successfully wrote to log, update timestamp
+            cout<<"added entry"<<endl ; 
+            } else {
+                invalid("problem with the token") ; 
+            }
+        }
+        else{
+            invalid("problem with the sequence of data") ; 
+        }
+    }
+    else if ( checks_on_sequence(logFileName, data) ) {
         if (write_to_log(logFileName, data)) {
             // Successfully wrote to log, update timestamp
            cout<<"added entry"<<endl ; 
@@ -297,5 +451,4 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
-
-
+*/
