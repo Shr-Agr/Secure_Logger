@@ -12,7 +12,7 @@ int main()
 
     SecureLogger logger;
     string token = "Break the system ";
-    const char *to_be_encrypted = "The text, or wording, of a book or article is made up of the original words that the author wrote.In English papers, you have to quote from the text, or actual words in the book you're writing about. You might hear people talk about text in contrast to pictures. For example, a book's text and its pictures should get at the same ideas but in different ways. You translate, summarize or paraphrase a text, but there's only one original.";
+    const char *to_be_encrypted = "The plaintext to be encrypted";
     const unsigned char *plaintext = reinterpret_cast<const unsigned char *>(to_be_encrypted);
     // cout << "plaintext size: " << strlen((const char *)plaintext) << endl;
     string filename = "test1.txt";

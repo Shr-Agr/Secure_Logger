@@ -372,6 +372,8 @@
         {
             result[i] = decrypted[i];
         }
+        result[decrypted_len] = '\0';
+
         unsigned char *ret = result;
 
         // cout << "result size: " << strlen((char *)result) << endl;
