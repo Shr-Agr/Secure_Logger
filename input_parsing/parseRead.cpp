@@ -4,7 +4,8 @@
 #include <getopt.h>
 #include <cctype>
 #include <vector>
-
+#include<sodium.h>
+// #include "parseRead.h"  
 using namespace std;
 
 typedef struct {
@@ -13,6 +14,7 @@ typedef struct {
     bool R_flag = false;
     bool T_flag = false;
     bool I_flag = false;
+
     vector<const char*> E_names;
     vector<const char*> G_names;
     const char* log = nullptr;
@@ -125,23 +127,23 @@ ParsedData parse_input(int argc, char* argv[]) {
     while ((option = getopt(argc, argv, "K:SRTIE:G:")) != -1) {
         switch (option) {
             case 'K':
-                if (data.K != nullptr || !validate_token(optarg)) invalid();
+                if ( !validate_token(optarg)) invalid();
                 data.K = optarg;
                 break;
             case 'S':
-                if (data.S_flag || data.R_flag || data.T_flag || data.I_flag) invalid();
+                if (data.R_flag || data.T_flag || data.I_flag) invalid();
                 data.S_flag = true;
                 break;
             case 'R':
-                if (data.S_flag || data.R_flag || data.T_flag || data.I_flag) invalid();
+                if (data.S_flag || data.T_flag || data.I_flag) invalid();
                 data.R_flag = true;
                 break;
             case 'T':
-                if (data.S_flag || data.R_flag || data.T_flag || data.I_flag) invalid();
+                if (data.S_flag || data.R_flag || data.I_flag) invalid();
                 data.T_flag = true;
                 break;
             case 'I':
-                if (data.S_flag || data.R_flag || data.T_flag || data.I_flag) invalid();
+                if (data.S_flag || data.R_flag || data.T_flag ) invalid();
                 data.I_flag = true;
                 break;
             case 'E':
