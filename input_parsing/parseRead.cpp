@@ -127,7 +127,6 @@ ParsedData parse_input(int argc, char* argv[]) {
     while ((option = getopt(argc, argv, "K:SRTIE:G:")) != -1) {
         switch (option) {
             case 'K':
-                if ( !validate_token(optarg)) invalid();
                 data.K = optarg;
                 break;
             case 'S':
@@ -147,18 +146,22 @@ ParsedData parse_input(int argc, char* argv[]) {
                 data.I_flag = true;
                 break;
             case 'E':
-                if (!validate_name(optarg)) invalid();
                 data.E_names.push_back(optarg);
                 break;
             case 'G':
-                if (!validate_name(optarg)) invalid();
                 data.G_names.push_back(optarg);
                 break;
             default:
                 invalid();
         }
     }
-
+    if ( !validate_token(data.K)) invalid();
+    for(int i = 0 ; i<data.E_names.size() ; i++){
+        if(!validate_name(data.E_names[i])) invalid(); 
+    }
+    for(int i = 0 ; i<data.G_names.size() ; i++){
+        if(!validate_name(data.G_names[i])) invalid(); 
+    }
     if (optind < argc) {
         if (!validate_log_file(argv[optind])) invalid();
         if (optind + 1 != argc) invalid();

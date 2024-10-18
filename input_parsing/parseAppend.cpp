@@ -161,7 +161,7 @@ ParsedData parse_input(int argc, char* argv[]) {
     while ((option = getopt(argc, argv, "T:K:E:G:ALR:")) != -1) {
         switch (option) {
             case 'T':
-                if (data.T != -1 || !validate_timestamp(optarg)) invalid("Timestamp");
+                if (!validate_timestamp(optarg)) invalid("Timestamp");
                 data.T = atoi(optarg);
                 break;
             case 'K':
@@ -193,6 +193,7 @@ ParsedData parse_input(int argc, char* argv[]) {
                 invalid("");
         }
     }
+    
     if (optind < argc) {
         // Validate the log file path
         if (!validate_log_file(argv[optind])) {
