@@ -4,7 +4,7 @@
 #include <getopt.h>
 #include <cctype>
 #include <vector>
-#include<sodium.h>
+// #include<sodium.h>
 // #include "parseRead.h"  
 using namespace std;
 
