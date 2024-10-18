@@ -21,7 +21,10 @@ int main()
 
     if (status == 0)
     {
-        cout << "The logfile exists from before and the token is correct or the file does not exist from before" << endl;
+        cout << "The logfile exists from before and the token is correct" << endl;
+    }
+    else if(status == 2){
+        cout<<"The file does not exist from before"<<endl ; 
     }
     else if (status == -1)
     {

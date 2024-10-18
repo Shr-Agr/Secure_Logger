@@ -228,6 +228,7 @@
     /// @return --- int --- 0 --> if the logfile exists from before and the token matches or if the file does not exist from before.
     ///                     -1 --> if the logfile exists from before and the token does not match.
     ///                      1 --> if in case some other unknown error occured in the verification process.
+    ///                      2 --> if the file does not exist from before.
     int SecureLogger::init(string token, string filename)
     {
         this->filename = filename;
@@ -264,7 +265,7 @@
             unsigned char *hashed_token1 = hash_token();
             key = hashed_token1;
             store_token(hashed_token1, this->filename, this->metadata_filename);
-            return 0;
+            return 2;
         }
         else if (verify == 0)
         {
