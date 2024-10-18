@@ -385,10 +385,8 @@ int main(int argc, char *argv[]) {
     string token = argv[2];
     string logFile = argv[argc - 1];
     logFile=logFile.append(".log");
-    cout<<logFile<<endl;
     ParsedData data;
     data=parse_input(argc,argv);
-    cout<<data.S_flag<<endl;
 
     map<string, PersonInfo> campusState;
     set<string> employees;
