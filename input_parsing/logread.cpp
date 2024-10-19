@@ -237,7 +237,7 @@ void printRoomHistory(const string &name, const map<string, PersonInfo> &campusS
     // Check if the person exists in campusState
     if (campusState.find(name) == campusState.end())
     {
-        cout << "not in any room" << endl; // Output invalid if the person is not found
+        // cout << "not in any room" << endl; // Output invalid if the person is not found
         return;
     }
     // Get the person's room entries
@@ -247,7 +247,7 @@ void printRoomHistory(const string &name, const map<string, PersonInfo> &campusS
     // Print room history as comma-separated values
     if (roomsVisited.empty())
     {
-        cout << "invalidV" << endl; // If no rooms visited, return "invalid"
+        cout << "" << endl; // If no rooms visited, return "invalid"
     }
     else
     {
@@ -269,19 +269,19 @@ void printTotalTime(const string &name, const map<string, TimeInfo> &timeTrackin
     // Check if the person is an employee or a guest based on the flag
     if (checkEmployee && employees.find(name) == employees.end())
     {
-        cout << name << " not an employee." << endl; // Output invalid if the person is not an employee
+        cout << name << " is not an employee." << endl; // Output invalid if the person is not an employee
         return;
     }
     else if (!checkEmployee && guests.find(name) == guests.end())
     {
-        cout << name << " not a guest." << endl; // Output invalid if the person is not a guest
+        cout << name << " is not a guest." << endl; // Output invalid if the person is not a guest
         return;
     }
 
     // Check if the person exists in timeTracking
     if (timeTracking.find(name) == timeTracking.end())
     {
-        cout << "invalidT" << endl; // Output invalid if the person is not found
+        cout << "" << endl; // Output invalid if the person is not found
         return;
     }
 
@@ -438,7 +438,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        cout << "invalidM1" << endl;
+        cout << "invalid" << endl;
         return 255;
     }
 
@@ -492,7 +492,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        cout << "invalidM1" << endl;
+        cout << "invalid" << endl;
         return 255;
     }
 
