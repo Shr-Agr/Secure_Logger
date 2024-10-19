@@ -159,6 +159,7 @@
                 if (hashed_token_str == stored_token_str)
                 {
                     // cout << "Token verified" << endl;
+                    key=stored_token;
                     return 1;
                 }
                 else
