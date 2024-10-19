@@ -165,27 +165,27 @@ ParsedData parse_input(int argc, char* argv[]) {
                 data.T = atoi(optarg);
                 break;
             case 'K':
-                if (data.K != nullptr ||  !validate_token(optarg)) invalid("token");
+                if ( !validate_token(optarg)) invalid("token");
                 data.K = optarg;
                 break;
             case 'E':
-                if (data.E != nullptr || !validate_name(optarg)) invalid("Employee");
+                if ( !validate_name(optarg)) invalid("Employee");
                 data.E = optarg;
                 break;
             case 'G':
-                if (data.G != nullptr || !validate_name(optarg)) invalid("Guest");
+                if ( !validate_name(optarg)) invalid("Guest");
                 data.G = optarg;
                 break;
             case 'A':
-                if (data.L_flag  || data.A_flag) invalid("");
+                if (data.L_flag ) invalid("");
                 data.A_flag = true;
                 break;
             case 'L':
-                if (data.L_flag || data.A_flag) invalid("");
+                if ( data.A_flag) invalid("");
                 data.L_flag = true;
                 break;
             case 'R':
-                if (data.R != -1 || !validate_room_id(optarg)) invalid("Room ID");
+                if (!validate_room_id(optarg)) invalid("Room ID");
                 data.R = atoi(optarg) ;
                 break;
 

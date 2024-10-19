@@ -6,6 +6,9 @@
 #include "parseAppend.h"  // Include the input parsing module
 #include<unordered_map>
 #include<map> 
+#include "security.h"  // Include the security file
+#include <cstring>
+#include <cstdlib>
 #include <sys/stat.h>
 #include<vector> 
 using namespace std;
@@ -25,67 +28,49 @@ struct Activity {
 // Function to append ".log" if it's not already there
 string ensure_log_extension(const char* logFileName) {
     string logName(logFileName);  // Convert the char* to a string for easier manipulation
-    if (logName.size() < 4 || logName.substr(logName.size() - 4) != ".log") {
-        logName += ".log";  // Add ".log" if not already present
+    if (logName.size() < 4 || logName.substr(logName.size() - 4) != ".txt") {
+        logName += ".txt";  // Add ".log" if not already present
     }
     return logName;
 }
-bool is_log_file_empty(const std::string& logFileName) {
-    ifstream file(logFileName);
-    return file.peek() == ifstream::traits_type::eof();
-}
 
-// Function to read the last used timestamp from the log file
-int read_last_timestamp(const std::string& logFileName) {
-    if (is_log_file_empty(logFileName)) {
-        return 0; // If the log file is empty, return 0 as the last timestamp
+
+int read_last_timestamp(const char *decryptedDataChar) {
+    // Convert the decryptedDataChar (const char*) to std::string for easier manipulation
+    std::string decryptedData(decryptedDataChar);
+
+    // If the decrypted log data is empty, return 0 as the last timestamp
+    if (decryptedData.empty()) {
+        return 0;
     }
 
-    std::ifstream logFile(logFileName, std::ios::in);
-    if (!logFile) {
-        std::cerr << "Error: Could not open log file." << std::endl;
-        return -1; // Error handling, return a negative value on failure
-    }
-
-    // Seek to the end of the file
-    logFile.seekg(0, std::ios::end);
-    
-    // Move back from the end to read the last non-empty line
-    char ch;
-    int pos = logFile.tellg();
-    
-    // Move back to skip any trailing newlines
-    while (pos > 0) {
-        logFile.seekg(--pos, std::ios::beg);
-        logFile.get(ch);
-        if (ch != '\n' && ch != '\r') {
-            break; // Exit if a non-newline character is found
-        }
-    }
-
-    // Now read backward to the start of the last valid line
+    // Split the decrypted data into lines
+    std::istringstream iss(decryptedData);
+    std::string line;
     std::string lastLine;
-    while (pos > 0) {
-        logFile.seekg(--pos, std::ios::beg);
-        logFile.get(ch);
-        if (ch == '\n' || pos == 0) {
-            std::getline(logFile, lastLine);
-            break;
+
+    // Traverse through the decrypted data line by line to find the last non-empty line
+    while (std::getline(iss, line)) {
+        if (!line.empty()) {
+            lastLine = line;  // Update lastLine to the most recent non-empty line
         }
     }
 
-    logFile.close();
+    // If no valid lines are found, return 0
+    if (lastLine.empty()) {
+        return 0;
+    }
 
     // Extract the timestamp from the last line
     int lastTimestamp = 0;
     std::stringstream ss(lastLine);
     std::string temp;
 
+    // Assuming the timestamp is the second token in the line
     ss >> temp >> lastTimestamp;
 
     return lastTimestamp;
 }
-
 
 
 
@@ -120,33 +105,35 @@ Activity parse_log_entry(const string& logEntry) {
     return activity;
 }
 
-Activity givelastActivity(const string& logFileName, ParsedData data) {
-    string personName;
+Activity givelastActivity(const char* decryptedText, ParsedData data) {
+    // Convert decrypted unsigned char* data to a C++ string
+    string decryptedString(decryptedText);
+    // Split the decrypted text into individual log entries (lines)
+    std::istringstream iss(decryptedString);
+    std::vector<std::string> logEntries;
+    std::string line;
+    
+    while (std::getline(iss, line)) {
+        logEntries.push_back(line);
+    }
+
+    // Determine the person name (from E or G)
+    std::string personName;
     if (data.E != nullptr) {
         personName = data.E;
     } else if (data.G != nullptr) {
         personName = data.G;
     }
 
-    ifstream logFile(logFileName);
-    // Read the entire file into a vector to traverse it backwards
-    vector<string> logEntries;
-    string line;
-
-    while (getline(logFile, line)) {
-        logEntries.push_back(line);
-    }
-
-    logFile.close();
-
-    // Traverse the log from the last entry to the first
+    // Traverse the log entries from the last entry to the first
     Activity lastActivity;
 
     for (auto it = logEntries.rbegin(); it != logEntries.rend(); ++it) {
         Activity activity = parse_log_entry(*it);
 
         // Check if the activity matches the person name (Employee or Guest)
-        if ((activity.E != "" && data.E != nullptr &&  activity.E == personName) || (activity.G != "" && data.G != nullptr &&  activity.G == personName))  {
+        if ((activity.E != "" && data.E != nullptr && activity.E == personName) || 
+            (activity.G != "" && data.G != nullptr && activity.G == personName)) {
             lastActivity = activity;
             break;  // We found the last activity, no need to continue
         }
@@ -155,15 +142,7 @@ Activity givelastActivity(const string& logFileName, ParsedData data) {
     return lastActivity;
 }
 
-bool checks_on_sequence(const string& logFileName, ParsedData data){
-    ifstream logFile(logFileName);
-
-    if (!logFile.is_open()) {
-        cerr << "Error: Could not open log file for reading!" << endl;
-        return false;
-    }
-    Activity lastActivity = givelastActivity(logFileName, data) ; 
-    
+bool checks_on_sequence(Activity lastActivity, ParsedData data){    
     // no last activity, now entry on campus 
     if(!lastActivity.A_flag && !lastActivity.L_flag && data.A_flag && data.R == -1 ){
         return true ; 
@@ -195,75 +174,49 @@ bool checks_on_sequence(const string& logFileName, ParsedData data){
 }
 
 
-    
-bool check_token_in_log(const string& logFileName, const string& token) {
-    ifstream logFile(logFileName);
-    if (!logFile) {
-        // File does not exist
-        return false;
-    }
+ const char* combineStrings(const char* first, const char* second) {
+    // Calculate the total length of the combined string
+    size_t length = std::strlen(first) + std::strlen(second) + 2; // +2 for the newline and null terminator
 
-    string line;
-    bool flag = 0 ; 
-    while (getline(logFile, line)) {
-        istringstream iss(line);
-        string field, extractedToken;
-        Activity lineData =  parse_log_entry(line) ; 
-        if(lineData.K == token){
-            flag = 1 ; 
-        }
-        else{
-            invalid("token is not correct") ; 
-            flag = 0 ; 
-        }
-        break ; 
-        
-    }
+    // Allocate memory for the combined string
+    char* combined = new char[length];
 
-    logFile.close();
-    return flag;
+    // Copy the first string and append the second string
+    std::strcpy(combined, first);
+    std::strcat(combined, "\n"); // Add a newline for better readability
+    std::strcat(combined, second);
+
+    // Return the combined string
+    return combined;
 }
-bool write_to_log(const string& logFileName, const ParsedData& data) {
-    ifstream checkFile(logFileName);
-    bool fileExists = checkFile.good();
-    checkFile.close();
+const char* convertParsedDataToCStr(const ParsedData& data) {
+    // Allocate a sufficiently large buffer to hold the final string
+    // Adjust this size based on the expected maximum size of the formatted string
+    char* buffer = new char[512];  // Dynamic memory allocation for a 512-byte buffer
+    std::memset(buffer, 0, 512);   // Initialize the buffer with zeros
 
-    // If file exists, check the token
-    if (fileExists) {
-        if (!check_token_in_log(logFileName, data.K)) {
-            cout << "Error: Token K does not match any entry in the existing log file." << endl;
-            return false;
-        }
-    }
+    // Start constructing the formatted string
+    std::ostringstream oss;
 
-    // Open the log file for appending (or creating if it doesn't exist)
-    ofstream logFile;
-    logFile.open(logFileName, ios::app);  // Open file in append mode
+    // Add each part, including default/null values
+    oss << "T: " << (data.T != -1 ? std::to_string(data.T) : "null") << " "
+        << "K: " << (data.K ? data.K : "null") << " "
+        << "E: " << (data.E ? data.E : "null") << " "
+        << "G: " << (data.G ? data.G : "null") << " "
+        << "R: " << (data.R != -1 ? std::to_string(data.R) : "null") << " "
+        << "A_flag: " << (data.A_flag ? "true" : "false") << " "
+        << "L_flag: " << (data.L_flag ? "true" : "false");
 
-    if (!logFile) {
-        cerr << "Error: Could not open log file " << logFileName << endl;
-        return false;
-    }
+    // Copy the formatted string into the buffer
+    std::strncpy(buffer, oss.str().c_str(), 511);  // Copy to buffer, limit to 511 chars
+    buffer[511] = '\0';  // Ensure null termination
 
-    // Write the parsed data to the log file
-    logFile << "T: " << data.T
-            << " K: " << (data.K ? data.K : "null")
-            << " E: " << (data.E ? data.E : "null")
-            << " G: " << (data.G ? data.G : "null")
-            << " R: " << data.R
-            << " A_flag: " << (data.A_flag ? "true" : "false")
-            << " L_flag: " << (data.L_flag ? "true" : "false")
-            << endl;
-
-    // Close the log file
-    logFile.close();
-    return true;
+    // Return the final C-style string
+    return buffer;
 }
 
-bool fileExist(const char *filename) {
-    struct stat buffer;
-    return (stat(filename, &buffer) == 0);
-}
+
+
 int main(int argc, char* argv[]) {
     // Call the input parsing function (not implemented in this snippet)
     ParsedData data;
@@ -318,137 +271,217 @@ int main(int argc, char* argv[]) {
             //cout<<line<<endl ; 
             // Call parse_input to get ParsedData for the current line
             data = parse_input(argCount, lineArgs);
+            if (sodium_init() < 0)
+            {
+                cerr << "Failed to initialize sodium" << endl;
+                return 1;
+            }
+
+            SecureLogger logger;
+            token = data.K ;
+            
+            const char *to_be_encrypted_New = convertParsedDataToCStr(data)  ;
+            const unsigned char *plaintextNew = reinterpret_cast<const unsigned char *>(to_be_encrypted_New);
+            // cout << "plaintext size: " << strlen((const char *)plaintext) << endl;
+            string filename = data.log ;
+            filename += ".txt" ; 
+
+            int status = logger.init(token, filename);
+
+            if (status == 0)
+            {
+                cout << "The logfile exists from before and the token is correct" << endl;
+                const char *decryptedDataChar ; 
+                try
+                {
+                    cout << "Decrypting file....." << endl;
+                    unsigned char *decryptedData = logger.decrypt_log();
+                    decryptedDataChar = reinterpret_cast<const char *>(decryptedData) ; 
+                    cout << "Decrypted Data: " << decryptedDataChar << endl;
+                    // cout << "decrypted size: " << strlen((char *)data) << endl;
+                    cout << "Decryption of file successful" << endl;
+                }
+                catch (const runtime_error &e)
+                {
+                    cerr << "Decryption of file error: " << e.what() << endl;
+                    return 1; // Return an error code
+                }
+                Activity lastactivity = givelastActivity(decryptedDataChar, data) ; 
+                
+                int lastTimestamp = read_last_timestamp(decryptedDataChar);
+                cout<<lastTimestamp<<" this is the timestamp"<<endl ; 
+                // Ensure the provided timestamp is greater than the last one
+                if (data.T <= lastTimestamp) {
+                    cerr << "Error: The provided timestamp T must be greater than the last used timestamp (" << lastTimestamp << ")" << endl;
+                    return 1;
+                }
+
+
+
+                if ( checks_on_sequence(lastactivity, data) ) {
+                    // here 
+                    const char* combinedLogFile = combineStrings(decryptedDataChar, to_be_encrypted_New) ; 
+                    try
+                    {
+                        cout << "Encrypting plaintext....." << endl;
+                        const unsigned char *combinedPlaintextNew = reinterpret_cast<const unsigned char *>(combinedLogFile);
+                        logger.encrypt_log_plaintext(combinedPlaintextNew);
+                        cout << "Encryption of plaintext successful" << endl;
+                    }
+                    catch (const runtime_error &e)
+                    {
+                        cerr << "Encryption of plaintext error: " << e.what() << endl;
+                        return 1; // Return an error code
+                    }
+
+                } else {
+                    invalid("Invalid operation: sequence of data is incorrect.") ;
+                }
+
+            }
+            else if(status == 2){
+                cout<<"The file does not exist from before"<<endl ; 
+                if(data.A_flag && data.R == -1){
+                try
+                {
+                    cout << "Encrypting plaintext....." << endl;
+                    logger.encrypt_log_plaintext(plaintextNew);
+                    cout << "Encryption of plaintext successful" << endl;
+                }
+                catch (const runtime_error &e)
+                {
+                    cerr << "Encryption of plaintext error: " << e.what() << endl;
+                    return 1; // Return an error code
+                }
+                }
+                else{
+                    invalid("problem with the sequence of data") ; 
+                }
+
+                
+            }
+            else if (status == -1)
+            {
+                cout << "Token not verfified for file: " << filename << endl;
+                invalid("token not validate");
+            }
+            else
+            {
+                cout << "Some error occured during the verification" << endl;
+                invalid("verification error") ; 
+            }
 
             // Ensure the log file has the ".log" extension
-            string logFileName = ensure_log_extension(data.log);
-
-            // Read the last used timestamp
-            int lastTimestamp = read_last_timestamp(logFileName);
-
-            // Ensure the provided timestamp is greater than the last one
-            if (data.T <= lastTimestamp) {
-                cerr << "Error on line " << lineNumber << ": The provided timestamp T must be greater than the last used timestamp (" << lastTimestamp << ")" << endl;
-                continue;  // Skip to the next line
-            }
-
-            // Process the log and write data if valid
             
-            if (fileExist(logFileName.c_str())) {
-                if (checks_on_sequence(logFileName, data)) {
-                    if (write_to_log(logFileName, data)) {
-                        cout << "Entry added for line " << lineNumber << endl;
-                    } else {
-                        cerr << "Error on line " << lineNumber << ": Problem with the token" << endl;
-                    }
-                } else {
-                    cerr << "Error on line " << lineNumber << ": Invalid operation, sequence of data is incorrect." << endl;
-                }
-            } else {
-                // Handle initial entry case
-                if (data.A_flag && data.R == -1) {
-                    if (write_to_log(logFileName, data)) {
-                        cout << "Initial entry added for line " << lineNumber << endl;
-                    } else {
-                        cerr << "Error on line " << lineNumber << ": Problem with the token" << endl;
-                    }
-                } else {
-                    cerr << "Error on line " << lineNumber << ": Problem with the sequence of data" << endl;
-                }
-            }
         }
 
         batchFile.close();
     } else {
         data = parse_input(argc, argv);
         // Ensure the log file has the ".log" extension
-        string logFileName = ensure_log_extension(data.log);
+        //string logFileName = ensure_log_extension(data.log);
         // Read the last used timestamp
-        int lastTimestamp = read_last_timestamp(logFileName);
-        cout<<lastTimestamp<<" this is the timestamp"<<endl ; 
-        // Ensure the provided timestamp is greater than the last one
-        if (data.T <= lastTimestamp) {
-            cerr << "Error: The provided timestamp T must be greater than the last used timestamp (" << lastTimestamp << ")" << endl;
+        if (sodium_init() < 0)
+        {
+            cerr << "Failed to initialize sodium" << endl;
             return 1;
         }
 
-        // Process the log and write data if valid
-        ifstream file(logFileName);  // Try to open the file
-        bool fileExist = file.good();       
-        if(!fileExist){
-            if(data.A_flag && data.R == -1){
-                if (write_to_log(logFileName, data)) {
-                    // Successfully wrote to log, update timestamp
-                cout<<"added entry"<<endl ; 
-                } else {
-                    invalid("problem with the token") ; 
+        SecureLogger logger;
+        const char* token = data.K ;
+        
+        const char *to_be_encrypted_New = convertParsedDataToCStr(data)  ;
+        const unsigned char *plaintextNew = reinterpret_cast<const unsigned char *>(to_be_encrypted_New);
+        // cout << "plaintext size: " << strlen((const char *)plaintext) << endl;
+        string filename = data.log ;
+        filename += ".txt" ; 
+
+        int status = logger.init(token, filename);
+
+        if (status == 0)
+        {
+            cout << "The logfile exists from before and the token is correct" << endl;
+            const char *decryptedDataChar ; 
+            try
+            {
+                cout << "Decrypting file....." << endl;
+                unsigned char *decryptedData = logger.decrypt_log();
+                decryptedDataChar = reinterpret_cast<const char *>(decryptedData) ; 
+                cout << "Decrypted Data: " << decryptedDataChar << endl;
+                // cout << "decrypted size: " << strlen((char *)data) << endl;
+                cout << "Decryption of file successful" << endl;
+            }
+            catch (const runtime_error &e)
+            {
+                cerr << "Decryption of file error: " << e.what() << endl;
+                return 1; // Return an error code
+            }
+            Activity lastactivity = givelastActivity(decryptedDataChar, data) ; 
+            
+            int lastTimestamp = read_last_timestamp(decryptedDataChar);
+            cout<<lastTimestamp<<" this is the timestamp"<<endl ; 
+            // Ensure the provided timestamp is greater than the last one
+            if (data.T <= lastTimestamp) {
+                cerr << "Error: The provided timestamp T must be greater than the last used timestamp (" << lastTimestamp << ")" << endl;
+                return 1;
+            }
+
+
+
+            if ( checks_on_sequence(lastactivity, data) ) {
+                // here 
+                const char* combinedLogFile = combineStrings(decryptedDataChar, to_be_encrypted_New) ; 
+                try
+                {
+                    cout << "Encrypting plaintext....." << endl;
+                    const unsigned char *combinedPlaintextNew = reinterpret_cast<const unsigned char *>(combinedLogFile);
+                    logger.encrypt_log_plaintext(combinedPlaintextNew);
+                    cout << "Encryption of plaintext successful" << endl;
                 }
+                catch (const runtime_error &e)
+                {
+                    cerr << "Encryption of plaintext error: " << e.what() << endl;
+                    return 1; // Return an error code
+                }
+
+            } else {
+                invalid("Invalid operation: sequence of data is incorrect.") ;
+            }
+
+        }
+        else if(status == 2){
+            cout<<"The file does not exist from before"<<endl ; 
+            if(data.A_flag && data.R == -1){
+            try
+            {
+                cout << "Encrypting plaintext....." << endl;
+                logger.encrypt_log_plaintext(plaintextNew);
+                cout << "Encryption of plaintext successful" << endl;
+            }
+            catch (const runtime_error &e)
+            {
+                cerr << "Encryption of plaintext error: " << e.what() << endl;
+                return 1; // Return an error code
+            }
             }
             else{
                 invalid("problem with the sequence of data") ; 
             }
+
+            
         }
-        else if ( checks_on_sequence(logFileName, data) ) {
-            if (write_to_log(logFileName, data)) {
-                // Successfully wrote to log, update timestamp
-            cout<<"added entry"<<endl ; 
-            } else {
-                invalid("problem with the token") ; 
-            }
-        } else {
-            invalid("Invalid operation: sequence of data is incorrect.") ;
+        else if (status == -1)
+        {
+            cout << "Token not verfified for file: " << filename << endl;
+            invalid("token not validate");
         }
-        
+        else
+        {
+            cout << "Some error occured during the verification" << endl;
+            invalid("verification error") ; 
+        }
     }
 
     return 0;
 }
 
-
-/*
-
-
-int main(int argc, char* argv[]) {
-    // Call the input parsing function (not implemented in this snippet)
-    ParsedData data = parse_input(argc, argv);
-
-    // Ensure the log file has the ".log" extension
-    string logFileName = ensure_log_extension(data.log);
-    // Read the last used timestamp
-    int lastTimestamp = read_last_timestamp(logFileName);
-    cout<<lastTimestamp<<" this is the timestamp"<<endl ; 
-    // Ensure the provided timestamp is greater than the last one
-    if (data.T <= lastTimestamp) {
-        cerr << "Error: The provided timestamp T must be greater than the last used timestamp (" << lastTimestamp << ")" << endl;
-        return 1;
-    }
-
-    // Process the log and write data if valid
-    ifstream file(logFileName);  // Try to open the file
-    bool fileExist = file.good();       
-    if(!fileExist){
-        if(data.A_flag && data.R == -1){
-            if (write_to_log(logFileName, data)) {
-                // Successfully wrote to log, update timestamp
-            cout<<"added entry"<<endl ; 
-            } else {
-                invalid("problem with the token") ; 
-            }
-        }
-        else{
-            invalid("problem with the sequence of data") ; 
-        }
-    }
-    else if ( checks_on_sequence(logFileName, data) ) {
-        if (write_to_log(logFileName, data)) {
-            // Successfully wrote to log, update timestamp
-           cout<<"added entry"<<endl ; 
-        } else {
-            invalid("problem with the token") ; 
-        }
-    } else {
-        invalid("Invalid operation: sequence of data is incorrect.") ;
-    }
-
-    return 0;
-}
-*/
