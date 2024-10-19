@@ -15,7 +15,7 @@ int main()
     const char *to_be_encrypted = "The plaintext to be encrypted";
     const unsigned char *plaintext = reinterpret_cast<const unsigned char *>(to_be_encrypted);
     // cout << "plaintext size: " << strlen((const char *)plaintext) << endl;
-    string filename = "./test1.txt";
+    string filename = "test1.txt";
 
     int status = logger.init(token, filename);
 
