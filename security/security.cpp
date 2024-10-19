@@ -257,10 +257,23 @@
         {
             // cout << "Token does not exist(means file does not exists)" << endl;
 
-            // create a new file
-            ofstream myfile;
-            myfile.open(this->filename);
-            myfile.close();
+            // create a new file given the relative path as filename 
+            filesystem::path pathObj(filename);
+            filesystem::path directory = pathObj.parent_path();
+
+            // Create directories if they don't exist
+            if (!filesystem::exists(directory)) {
+                filesystem::create_directories(directory);
+            }
+
+            // Create the file
+            ofstream file(filename);
+            if (file) {
+                std::cout << "File created at: " << filename << std::endl;
+            } else {
+                std::cerr << "Error creating file at: " << filename << std::endl;
+            }
+        
             // Hash the token
             unsigned char *hashed_token1 = hash_token();
             key = hashed_token1;
