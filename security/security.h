@@ -10,6 +10,7 @@
 #include <fstream>
 #include <stdexcept>
 #include <nlohmann/json.hpp>
+#include <filesystem>
 
 using namespace std;
 using json = nlohmann::json;
