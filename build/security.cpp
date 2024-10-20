@@ -337,6 +337,11 @@ int SecureLogger::init(string token, string filename)
         }
         else
         {
+            std::filesystem::path directory = pathObj.parent_path();
+            if (!filesystem::exists(directory))
+            {
+                filesystem::create_directories(directory);
+            }
             ofstream file(filename); // Create or open the file at the given path
             if (file.is_open())
             {
