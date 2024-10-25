@@ -178,7 +178,7 @@ bool validate_log_file(const char *log_path)
 
 void invalid(string s)
 {
-    cout << "invalid " << endl;
+    cout << "invalid" << endl;
     exit(255);
 }
 

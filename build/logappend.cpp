@@ -24,6 +24,8 @@ struct Activity
     bool L_flag = false; // Log flag
 };
 
+
+
 // Function to append ".log" if it's not already there
 string ensure_log_extension(const char *logFileName)
 {
@@ -403,7 +405,7 @@ int main(int argc, char *argv[])
                         // Extract the fields from the log line
                         ss >> T >> timestamp >> K >> token >> E >> employee >> G >> guest >> R >> roomId >> A >> a_flag_str >> L >> l_flag_str;
                         // Convert A_flag and L_flag from string to boolean
-                        if (employee == personName || guest == personName)
+                        if ((employee == personName && a_flag_str == "true") || (guest == personName && !(a_flag_str == "true") ))
                         {
                             A_flag = (a_flag_str == "true");
                             // L_flag = (l_flag_str == "true");
@@ -713,7 +715,7 @@ int main(int argc, char *argv[])
                     // Extract the fields from the log line
                     ss >> T >> timestamp >> K >> token >> E >> employee >> G >> guest >> R >> roomId >> A >> a_flag_str >> L >> l_flag_str;
                     // Convert A_flag and L_flag from string to boolean
-                    if (employee == personName || guest == personName)
+                    if ((employee == personName && a_flag_str == "true") || (guest == personName && !(a_flag_str == "true") ))
                     {
                         A_flag = (a_flag_str == "true");
                         // L_flag = (l_flag_str == "true");
@@ -820,6 +822,7 @@ int main(int argc, char *argv[])
                     // return 1;
                     invalid("");
                 }
+                
 
                 if (checks_on_sequence(lastactivity, data))
                 {
@@ -882,7 +885,7 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    invalid("");
+                    invalid("seqeunce");
                 }
             }
             catch (const runtime_error &e)
@@ -895,7 +898,7 @@ int main(int argc, char *argv[])
         else if (status == 2)
         {
             // cout << "The file does not exist from before" << endl;
-            // printParsedData(data) ;
+            // ///printParsedData(data) ;
             //  std::cout << "Parsed Data:" << std::endl;
             //  std::cout << "A_flag: " << (data.A_flag ? "true" : "false") << std::endl;
             //  std::cout << "L_flag: " << (data.L_flag ? "true" : "false") << std::endl;
