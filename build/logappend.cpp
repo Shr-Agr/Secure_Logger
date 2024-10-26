@@ -24,8 +24,6 @@ struct Activity
     bool L_flag = false; // Log flag
 };
 
-
-
 // Function to append ".log" if it's not already there
 string ensure_log_extension(const char *logFileName)
 {
@@ -163,10 +161,11 @@ bool checks_on_sequence(Activity lastActivity, ParsedData data)
     {
         return true;
     }
-    if (lastActivity.L_flag && lastActivity.R != -1 && data.A_flag && data.R != -1)
+    if (lastActivity.L_flag && lastActivity.R == -1 && data.A_flag && data.R == -1)
     {
         return true;
     }
+
     // previous activity
     // previous is campus arrival, now new entry is arrival in room
     if (lastActivity.A_flag && lastActivity.R == -1 && data.A_flag && data.R != -1)
@@ -188,6 +187,7 @@ bool checks_on_sequence(Activity lastActivity, ParsedData data)
     {
         return true;
     }
+
     // no entry in the room, direct campus entry and departure
     else if (lastActivity.A_flag && lastActivity.R == -1 && data.L_flag && data.R == -1)
     {
@@ -405,7 +405,7 @@ int main(int argc, char *argv[])
                         // Extract the fields from the log line
                         ss >> T >> timestamp >> K >> token >> E >> employee >> G >> guest >> R >> roomId >> A >> a_flag_str >> L >> l_flag_str;
                         // Convert A_flag and L_flag from string to boolean
-                        if ((employee == personName && a_flag_str == "true") || (guest == personName && !(a_flag_str == "true") ))
+                        if ((employee == personName && data.E != nullptr) || (guest == personName && data.G != nullptr))
                         {
                             A_flag = (a_flag_str == "true");
                             // L_flag = (l_flag_str == "true");
@@ -715,7 +715,7 @@ int main(int argc, char *argv[])
                     // Extract the fields from the log line
                     ss >> T >> timestamp >> K >> token >> E >> employee >> G >> guest >> R >> roomId >> A >> a_flag_str >> L >> l_flag_str;
                     // Convert A_flag and L_flag from string to boolean
-                    if ((employee == personName && a_flag_str == "true") || (guest == personName && !(a_flag_str == "true") ))
+                    if ((employee == personName && data.E != nullptr) || (guest == personName && data.G != nullptr))
                     {
                         A_flag = (a_flag_str == "true");
                         // L_flag = (l_flag_str == "true");
@@ -822,7 +822,6 @@ int main(int argc, char *argv[])
                     // return 1;
                     invalid("");
                 }
-                
 
                 if (checks_on_sequence(lastactivity, data))
                 {
