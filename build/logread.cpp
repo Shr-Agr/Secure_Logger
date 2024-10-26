@@ -48,14 +48,12 @@ void readLogFile(const string &token, const string &logFile, map<string, PersonI
     // cout << "inside2" << endl;
 
     unsigned long long leng = logger.get_plaintext_len();
-        char newarray[leng];
-        for (unsigned long long i = 0; i < leng; i++)
-                {
-                    newarray[i] = decrypted_data[i];
-                }
+    char newarray[leng];
+    for (unsigned long long i = 0; i < leng; i++)
+    {
+        newarray[i] = decrypted_data[i];
+    }
 
-
-    
     // cout << "Decrypted: " << reinterpret_cast<const char *>(newarray) << endl;
 
     // Convert decrypted_data to a string for easier line-by-line processing
@@ -87,7 +85,7 @@ void readLogFile(const string &token, const string &logFile, map<string, PersonI
 
         // Convert A_flag and L_flag from string to boolean
         A_flag = (a_flag_str == "true");
-        L_flag = (l_flag_str == "true");
+        L_flag = !A_flag;
 
         latestTimestamp = timestamp; // Update the latest timestamp
 
@@ -136,7 +134,7 @@ void readLogFile(const string &token, const string &logFile, map<string, PersonI
             else if (L_flag && roomId == "-1")
                 guests.erase(name);
         }
-        
+
         // Track room history if it's not the campus entry (-1)
         if (roomId != "-1")
         {
@@ -388,7 +386,6 @@ void printCommonRooms(const vector<pair<string, bool>> &names, const map<string,
     }
 }
 
-
 int main(int argc, char *argv[])
 {
     if (sodium_init() < 0)
@@ -478,7 +475,7 @@ int main(int argc, char *argv[])
     else if (option == "-I")
     {
         vector<pair<string, bool>> names; // To hold (name, isEmployee)
-        for (int i = 0; i < data.E_names.size();i++)
+        for (int i = 0; i < data.E_names.size(); i++)
         {
             names.push_back({data.E_names[i], true});
         }
@@ -486,7 +483,7 @@ int main(int argc, char *argv[])
         {
             names.push_back({data.G_names[i], false});
         }
-        // cout<<"Started"<<endl;   
+        // cout<<"Started"<<endl;
         // Call the function to print common rooms
         printCommonRooms(names, campusState, employees, guests);
     }
