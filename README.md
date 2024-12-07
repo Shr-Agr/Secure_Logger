@@ -67,14 +67,19 @@ For this project, we recommend setting up the required libraries (`libsodium` an
 ### Building the Project
 
 To build the project, follow these steps:
+1. Clone the repository:
+```bash
+git clone https://github.com/Shr-Agr/Secure_Logger.git
+``` 
 
-1. Navigate to the build directory:
+2. Navigate to the build directory:
 
 ```bash
+cd Secure_Logger
 cd build
 ```
 
-2.Run make to compile the executables:
+3. Run make to compile the executables:
 ```bash
 make
 ```
