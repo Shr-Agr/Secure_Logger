@@ -11,7 +11,7 @@ logread
 
 As per the above invocations, only one of `-S`, `-R`, `-T`, or `-I` may be specified at once.
 
-In what follows, we refer to employees or visitors who are 'in the campus'. Each person is expected to first enter the campus (using `logappend` option `-A`) prior to entering any particular room of the campus. Once in the campus, he or she may enter and leave various rooms (using `logappend` options `-A -R` and options `-L -R`, respectively). Finally, the person will leave the campus (using `logappend` option `-L`). During this whole sequence of events, a person is considered to be 'in the campus'. See the [examples](EXAMPLES.html) for more information.
+In what follows, we refer to employees or visitors who are 'in the campus'. Each person is expected to first enter the campus (using `logappend` option `-A`) prior to entering any particular room of the campus. Once in the campus, he or she may enter and leave various rooms (using `logappend` options `-A -R` and options `-L -R`, respectively). Finally, the person will leave the campus (using `logappend` option `-L`). During this whole sequence of events, a person is considered to be 'in the campus'. See the [examples](EXAMPLES.md) for more information.
 
 When output elements are comma-separated lists, there will be no spaces before or after the commas.
 

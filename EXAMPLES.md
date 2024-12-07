@@ -1,3 +1,5 @@
+[Back](README.md)
+
 Examples
 ========
 Consider the following 4 invocations of `logappend` followed by an invocation of `logread`:
