@@ -1,4 +1,4 @@
-# Security Guard
+# Secure Logger
 
 ## Overview
 
