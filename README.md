@@ -80,8 +80,8 @@ make
 ```
 This will create two executable files in the build directory:
 
-logappend  
-logread
+`logappend`
+`logread`
 
 ### Running the Programs
 After building the project, you can run the executables from the build directory.
