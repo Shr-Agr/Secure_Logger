@@ -60,7 +60,7 @@ For this project, we recommend setting up the required libraries (`libsodium` an
     - **Library Path (`-L`)**: Specifies the directory containing the necessary libraries. (For example, "C:/msys64/mingw64/lib" for MinGW64)
 
 
-### Building the Project
+## Building the Project
 
 To build the project, follow these steps:
 1. Clone the repository:
@@ -84,7 +84,7 @@ This will create two executable files in the build directory:
 `logappend`
 `logread`
 
-### Running the Programs
+## Running the Programs
 After building the project, you can run the executables from the build directory.
 
 Running logappend
