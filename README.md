@@ -4,6 +4,8 @@
 
 A *secure log*, to describe the *state of an institute*: the guests and employees who have entered and left, and persons that are in campus in different buildings or rooms, is implemented in this project. The log will be used by *two programs*. One program, `logappend`, will append new information to this file, and the other, `logread`, will read from the file and display the state of the institute according to a given query over the log. Both programs will use an authentication token, supplied as a command-line argument, to authenticate each other. Specifications for these two programs are described in more detail here: [`logappend`](LOGAPPEND.md) and [`logread`](LOGREAD.md).
 
+All the source files and `Makefile` are located in the `build` directory. After building, the executables `logappend` and `logread` will be created within the `build` directory.
+
 The project uses the `libsodium` library for cryptographic operations and `nlohmann-json` for JSON parsing.
 
 
@@ -12,12 +14,6 @@ The project uses the `libsodium` library for cryptographic operations and `nlohm
  * The [`logappend`](LOGAPPEND.md) program appends data to a log
  * The [`logread`](LOGREAD.md) program reads and queries data from the log
 
-
-## Project Structure
-
-The project directory structure is as follows:
-
-All the source files and `Makefile` are located in the `build` directory. After building, the executables `logappend` and `logread` will be created within the `build` directory.
 
 ## Prerequisites
 
